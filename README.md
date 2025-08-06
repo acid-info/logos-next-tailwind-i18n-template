@@ -1,6 +1,6 @@
-# Logos Next.js + TailwindCSS Template
+# Logos Next.js + TailwindCSS + i18n Template
 
-A starter template built with **Next.js** and **TailwindCSS**.
+A starter template built with **Next.js**, **TailwindCSS**m and **next-intl**.
 
 ## Getting Started
 
