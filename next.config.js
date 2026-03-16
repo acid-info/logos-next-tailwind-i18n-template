@@ -50,12 +50,12 @@ module.exports = () => {
     // output: 'export',
     output,
     basePath,
+    turbopack: {
+      root: __dirname,
+    },
     reactStrictMode: true,
     trailingSlash: false,
     pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
-    eslint: {
-      dirs: ['app', 'components', 'layouts', 'scripts'],
-    },
     images: {
       unoptimized,
     },
@@ -67,7 +67,7 @@ module.exports = () => {
         },
       ]
     },
-    webpack: (config, options) => {
+    webpack: (config) => {
       config.module.rules.push({
         test: /\.svg$/,
         use: ['@svgr/webpack'],

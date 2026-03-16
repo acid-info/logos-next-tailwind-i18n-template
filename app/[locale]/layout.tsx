@@ -4,8 +4,6 @@ import Header from '@/components/site-headaer'
 import Footer from '@/components/site-footer'
 import { themeInitScript } from '@/utils/theme'
 
-import { LsdThemeStyles } from '@acid-info/lsd-react/theme'
-import '@acid-info/lsd-react/css'
 import { NextIntlClientProvider } from 'next-intl'
 import LocaleSwitcher from '@/components/locale/locale-switcher'
 
@@ -27,7 +25,6 @@ export default async function RootLayout({
           <meta name="msapplication-TileColor" content="#000000" />
           <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
           <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
-          <LsdThemeStyles />
           <script
             dangerouslySetInnerHTML={{
               __html: themeInitScript,

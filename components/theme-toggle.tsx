@@ -1,6 +1,5 @@
 'use client'
 
-import { Button } from '@acid-info/lsd-react/client/Button'
 import { useEffect, useState } from 'react'
 
 export default function ThemeToggle() {
@@ -22,5 +21,5 @@ export default function ThemeToggle() {
     localStorage.setItem('theme', newTheme)
   }
 
-  return <Button onClick={toggleTheme}>Theme Toggle</Button>
+  return <button onClick={toggleTheme}>Theme Toggle</button>
 }

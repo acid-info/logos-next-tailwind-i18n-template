@@ -1,18 +1,51 @@
+import js from '@eslint/js'
+import prettier from 'eslint-config-prettier'
+import prettierPlugin from 'eslint-plugin-prettier'
+import tseslint from 'typescript-eslint'
+
 export default [
   {
-    root: true,
-    extends: ['next/core-web-vitals', 'prettier', 'plugin:tailwindcss/recommended'],
-    plugins: ['tailwindcss', 'unused-imports'],
+    ignores: ['.next/', 'node_modules/'],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  prettier,
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    plugins: {
+      prettier: prettierPlugin,
+    },
+    languageOptions: {
+      globals: {
+        require: 'readonly',
+        module: 'readonly',
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        console: 'readonly',
+        window: 'readonly',
+        document: 'readonly',
+        localStorage: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+        Response: 'readonly',
+        Request: 'readonly',
+      },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
     rules: {
-      '@next/next/no-html-link-for-pages': 'off',
-      '@next/next/no-img-element': 'off',
-      'tailwindcss/no-custom-classname': 'off',
-      'tailwindcss/classnames-order': 'off',
+      'prettier/prettier': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
-    settings: {
-      tailwindcss: { callees: ['cn', 'cva'], config: 'tailwind.config.cjs' },
-      next: { rootDir: ['app/*/'] },
+  },
+  {
+    files: ['**/*.js'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
-    overrides: [{ files: ['*.ts', '*.tsx'], parser: '@typescript-eslint/parser' }],
   },
 ]
