@@ -109,20 +109,17 @@ export default async function Page() {
   ]
 
   return (
-    <div className="mx-auto max-w-6xl space-y-12 px-4 py-12">
+    <div className="mx-auto max-w-6xl space-y-12 px-4 py-12 text-black">
       {/* Stats */}
       <section>
-        <h2 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-300">Overview</h2>
+        <h2 className="mb-4 text-xl font-semibold text-black">Overview</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {stats.map(({ label, value }) => (
-            <div
-              key={label}
-              className="rounded-xl border border-gray-200 bg-white p-5 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800"
-            >
-              <p className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
+            <div key={label} className="border border-black bg-white p-5 text-center">
+              <p className="text-3xl font-medium text-black">
                 {value !== undefined ? value.toLocaleString() : '—'}
               </p>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{label}</p>
+              <p className="mt-1 text-xs text-black">{label}</p>
             </div>
           ))}
         </div>
@@ -130,40 +127,37 @@ export default async function Page() {
 
       {/* Events Table */}
       <section>
-        <h2 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-300">
+        <h2 className="mb-4 text-xl font-semibold text-black">
           Circle Events{' '}
-          <span className="text-sm font-normal text-gray-400">({events.length} total)</span>
+          <span className="text-sm font-normal text-black">({events.length} total)</span>
         </h2>
         {events.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400">No events found.</p>
+          <p className="text-black">No events found.</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm dark:border-gray-700">
-            <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-800">
+          <div className="overflow-x-auto border border-black">
+            <table className="min-w-full divide-y divide-black text-sm">
+              <thead className="bg-white">
                 <tr>
                   {['Event', 'City', 'Country', 'Date', 'Coords'].map((h) => (
                     <th
                       key={h}
-                      className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                      className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-black uppercase"
                     >
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
+              <tbody className="divide-y divide-black bg-white">
                 {events.map((ev) => (
-                  <tr
-                    key={ev.event_id}
-                    className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
-                  >
-                    <td className="max-w-xs px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
+                  <tr key={ev.event_id} className="transition-colors hover:bg-gray-50">
+                    <td className="max-w-xs px-4 py-3 font-medium text-black">
                       {ev.event_url ? (
                         <a
                           href={ev.event_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline dark:text-blue-400"
+                          className="text-black hover:underline"
                         >
                           {ev.event_name || '—'}
                         </a>
@@ -171,13 +165,9 @@ export default async function Page() {
                         ev.event_name || '—'
                       )}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                      {ev.location_city || '—'}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                      {ev.location_country || '—'}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-gray-600 dark:text-gray-300">
+                    <td className="px-4 py-3 text-black">{ev.location_city || '—'}</td>
+                    <td className="px-4 py-3 text-black">{ev.location_country || '—'}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-black">
                       {ev.start_at
                         ? new Date(ev.start_at).toLocaleDateString('en-GB', {
                             year: 'numeric',
@@ -186,7 +176,7 @@ export default async function Page() {
                           })
                         : '—'}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs whitespace-nowrap text-gray-400 dark:text-gray-500">
+                    <td className="px-4 py-3 font-mono text-xs whitespace-nowrap text-black">
                       {ev.geo_latitude && ev.geo_longitude
                         ? `${Number(ev.geo_latitude).toFixed(3)}, ${Number(ev.geo_longitude).toFixed(3)}`
                         : '—'}
