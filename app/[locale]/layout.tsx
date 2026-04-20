@@ -25,17 +25,17 @@ export default async function RootLayout({
           <meta name="msapplication-TileColor" content="#000000" />
           <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
           <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
-          <script
+          {/* <script
             dangerouslySetInnerHTML={{
               __html: themeInitScript,
             }}
-          />
+          /> */}
         </head>
         <body>
-          <Header />
+          {/* <Header /> */}
           <main>{children}</main>
-          <LocaleSwitcher />
-          <Footer />
+          {/* <LocaleSwitcher />
+          <Footer /> */}
         </body>
       </html>
     </NextIntlClientProvider>

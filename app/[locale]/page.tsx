@@ -1,34 +1,222 @@
-import ThemeToggle from '@/components/theme-toggle'
 import { ROUTES } from '@/constants/routes'
 import { createDefaultMetadata } from '@/utils/metadata'
-import { useTranslations } from 'next-intl'
 
+// ── API constants ──────────────────────────────────────────────────────────
+const BI_GRAPHQL_API_URL = 'https://hasura.bi.status.im/v1/graphql'
+const LOGOS_GRAPHQL_API_URL = 'https://api.logos.co/v1/graphql'
+const CONTRIBUTIONS_API_URL = 'https://hasura.bi.status.im/api/rest/contributions/count_all'
+const CONTRIBUTIONS_API_RESPONSE_KEY = 'stg_external_contributors_agg_total_ext_contributions'
+const CIRCLES_GRAPHQL_RESPONSE_KEY = 'stg_external_circle_circle_event_aggregate'
+const REVALIDATE_INTERVAL = 86_400
+
+// ── Types ──────────────────────────────────────────────────────────────────
+interface ContributionsData {
+  total_commits: number
+  total_external_collaborators: number
+  total_repositories: number
+}
+
+interface CircleEvent {
+  event_id: string
+  event_name: string
+  event_url: string
+  geo_latitude: string | null
+  geo_longitude: string | null
+  location_city: string
+  location_country: string
+  start_at: string
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function getTodayISODateDaysAgo(days: number): string {
+  const date = new Date()
+  date.setDate(date.getDate() - days)
+  return date.toISOString().split('T')[0]
+}
+
+async function gql<T>(url: string, query: string): Promise<T | null> {
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+      next: { revalidate: REVALIDATE_INTERVAL },
+    })
+    if (!res.ok) return null
+    const json = await res.json()
+    return json?.data ?? null
+  } catch {
+    return null
+  }
+}
+
+// ── Fetchers ───────────────────────────────────────────────────────────────
+async function fetchContributions(): Promise<ContributionsData | null> {
+  try {
+    const res = await fetch(CONTRIBUTIONS_API_URL, {
+      next: { revalidate: REVALIDATE_INTERVAL },
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data?.[CONTRIBUTIONS_API_RESPONSE_KEY]?.[0] ?? null
+  } catch {
+    return null
+  }
+}
+
+async function fetchCircleCount(): Promise<number | null> {
+  const dateString = getTodayISODateDaysAgo(120)
+  const query = `query CountDistinctCities {
+  ${CIRCLES_GRAPHQL_RESPONSE_KEY}(where: { end_at: { _gte: "${dateString}" } }) {
+    aggregate {
+      count(distinct: true, columns: location_city)
+    }
+  }
+}`
+  const data = await gql<Record<string, { aggregate: { count: number } }>>(
+    BI_GRAPHQL_API_URL,
+    query
+  )
+  return data?.[CIRCLES_GRAPHQL_RESPONSE_KEY]?.aggregate?.count ?? null
+}
+
+async function fetchCircleEvents(): Promise<CircleEvent[]> {
+  const query = `query CircleEvents {
+  stg_external_circle_circle_event {
+    event_id
+    event_name
+    event_url
+    geo_latitude
+    geo_longitude
+    location_city
+    location_country
+    start_at
+  }
+}`
+  const data = await gql<{ stg_external_circle_circle_event: CircleEvent[] }>(
+    LOGOS_GRAPHQL_API_URL,
+    query
+  )
+  const events = data?.stg_external_circle_circle_event ?? []
+  return events.sort((a, b) => new Date(b.start_at).getTime() - new Date(a.start_at).getTime())
+}
+
+// ── Metadata ───────────────────────────────────────────────────────────────
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-
-  const metadata = await createDefaultMetadata({
-    title: 'Home',
-    description: 'Home Description',
+  return createDefaultMetadata({
+    title: 'Circles Dashboard',
+    description: 'Circles & Contributions',
     locale,
     path: ROUTES.home,
   })
-
-  return metadata
 }
 
-export default function Page() {
-  const t = useTranslations('home')
+// ── Page ───────────────────────────────────────────────────────────────────
+export default async function Page() {
+  const [contributions, circleCount, events] = await Promise.all([
+    fetchContributions(),
+    fetchCircleCount(),
+    fetchCircleEvents(),
+  ])
+
+  const stats = [
+    { label: 'Total Contributions', value: contributions?.total_commits },
+    { label: 'Active Contributors', value: contributions?.total_external_collaborators },
+    { label: 'Repositories', value: contributions?.total_repositories },
+    { label: 'Distinct Cities (120d)', value: circleCount ?? undefined },
+  ]
+
   return (
-    <div className="divide-y divide-gray-200 dark:divide-gray-700">
-      <div className="space-y-2 pt-6 pb-8 md:space-y-5">
-        <h1 className="text-3xl leading-9 font-extrabold tracking-tight text-gray-900 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14 dark:text-gray-100">
-          {t('title')}
-        </h1>
-        <br />
-        <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">Description</p>
-        <br />
-        <ThemeToggle />
-      </div>
+    <div className="mx-auto max-w-6xl space-y-12 px-4 py-12">
+      {/* Stats */}
+      <section>
+        <h2 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-300">Overview</h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {stats.map(({ label, value }) => (
+            <div
+              key={label}
+              className="rounded-xl border border-gray-200 bg-white p-5 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800"
+            >
+              <p className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
+                {value !== undefined ? value.toLocaleString() : '—'}
+              </p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Events Table */}
+      <section>
+        <h2 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-300">
+          Circle Events{' '}
+          <span className="text-sm font-normal text-gray-400">({events.length} total)</span>
+        </h2>
+        {events.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-400">No events found.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm dark:border-gray-700">
+            <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  {['Event', 'City', 'Country', 'Date', 'Coords'].map((h) => (
+                    <th
+                      key={h}
+                      className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
+                {events.map((ev) => (
+                  <tr
+                    key={ev.event_id}
+                    className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
+                    <td className="max-w-xs px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
+                      {ev.event_url ? (
+                        <a
+                          href={ev.event_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline dark:text-blue-400"
+                        >
+                          {ev.event_name || '—'}
+                        </a>
+                      ) : (
+                        ev.event_name || '—'
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                      {ev.location_city || '—'}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                      {ev.location_country || '—'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-gray-600 dark:text-gray-300">
+                      {ev.start_at
+                        ? new Date(ev.start_at).toLocaleDateString('en-GB', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs whitespace-nowrap text-gray-400 dark:text-gray-500">
+                      {ev.geo_latitude && ev.geo_longitude
+                        ? `${Number(ev.geo_latitude).toFixed(3)}, ${Number(ev.geo_longitude).toFixed(3)}`
+                        : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   )
 }
