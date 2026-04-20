@@ -4,18 +4,10 @@ import { createDefaultMetadata } from '@/utils/metadata'
 // ── API constants ──────────────────────────────────────────────────────────
 const BI_GRAPHQL_API_URL = 'https://hasura.bi.status.im/v1/graphql'
 const LOGOS_GRAPHQL_API_URL = 'https://api.logos.co/v1/graphql'
-const CONTRIBUTIONS_API_URL = 'https://hasura.bi.status.im/api/rest/contributions/count_all'
-const CONTRIBUTIONS_API_RESPONSE_KEY = 'stg_external_contributors_agg_total_ext_contributions'
 const CIRCLES_GRAPHQL_RESPONSE_KEY = 'stg_external_circle_circle_event_aggregate'
 const REVALIDATE_INTERVAL = 86_400
 
 // ── Types ──────────────────────────────────────────────────────────────────
-interface ContributionsData {
-  total_commits: number
-  total_external_collaborators: number
-  total_repositories: number
-}
-
 interface CircleEvent {
   event_id: string
   event_name: string
@@ -25,13 +17,6 @@ interface CircleEvent {
   location_city: string
   location_country: string
   start_at: string
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-function getTodayISODateDaysAgo(days: number): string {
-  const date = new Date()
-  date.setDate(date.getDate() - days)
-  return date.toISOString().split('T')[0]
 }
 
 async function gql<T>(url: string, query: string): Promise<T | null> {
@@ -51,23 +36,9 @@ async function gql<T>(url: string, query: string): Promise<T | null> {
 }
 
 // ── Fetchers ───────────────────────────────────────────────────────────────
-async function fetchContributions(): Promise<ContributionsData | null> {
-  try {
-    const res = await fetch(CONTRIBUTIONS_API_URL, {
-      next: { revalidate: REVALIDATE_INTERVAL },
-    })
-    if (!res.ok) return null
-    const data = await res.json()
-    return data?.[CONTRIBUTIONS_API_RESPONSE_KEY]?.[0] ?? null
-  } catch {
-    return null
-  }
-}
-
 async function fetchCircleCount(): Promise<number | null> {
-  const dateString = getTodayISODateDaysAgo(120)
   const query = `query CountDistinctCities {
-  ${CIRCLES_GRAPHQL_RESPONSE_KEY}(where: { end_at: { _gte: "${dateString}" } }) {
+  ${CIRCLES_GRAPHQL_RESPONSE_KEY} {
     aggregate {
       count(distinct: true, columns: location_city)
     }
@@ -114,17 +85,27 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 // ── Page ───────────────────────────────────────────────────────────────────
 export default async function Page() {
-  const [contributions, circleCount, events] = await Promise.all([
-    fetchContributions(),
-    fetchCircleCount(),
-    fetchCircleEvents(),
-  ])
+  const [circleCount, events] = await Promise.all([fetchCircleCount(), fetchCircleEvents()])
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const distinctCountries = new Set(
+    events.map((event) => event.location_country).filter((country) => country?.trim())
+  ).size
+
+  const upcomingEvents = events.filter((event) => {
+    if (!event.start_at) return false
+    const eventDate = new Date(event.start_at)
+    eventDate.setHours(0, 0, 0, 0)
+    return eventDate >= today
+  }).length
 
   const stats = [
-    { label: 'Total Contributions', value: contributions?.total_commits },
-    { label: 'Active Contributors', value: contributions?.total_external_collaborators },
-    { label: 'Repositories', value: contributions?.total_repositories },
-    { label: 'Distinct Cities (120d)', value: circleCount ?? undefined },
+    { label: 'Total Circle Events', value: events.length },
+    { label: 'Distinct Cities', value: circleCount ?? undefined },
+    { label: 'Distinct Countries', value: distinctCountries },
+    { label: 'Upcoming Events', value: upcomingEvents },
   ]
 
   return (
