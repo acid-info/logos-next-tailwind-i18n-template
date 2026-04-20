@@ -15,13 +15,12 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@/components/*": ["components/*"],
-      "@/data/*": ["data/*"],
-      "@/layouts/*": ["layouts/*"],
-      "@/css/*": ["css/*"]
+      "@/components/*": ["./components/*"],
+      "@/data/*": ["./data/*"],
+      "@/layouts/*": ["./layouts/*"],
+      "@/css/*": ["./css/*"]
     },
     "plugins": [
       {

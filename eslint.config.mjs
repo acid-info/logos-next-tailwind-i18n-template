@@ -1,9 +1,10 @@
+import { defineConfig } from 'eslint/config'
 import js from '@eslint/js'
 import prettier from 'eslint-config-prettier'
 import prettierPlugin from 'eslint-plugin-prettier'
 import tseslint from 'typescript-eslint'
 
-export default [
+export default defineConfig([
   {
     ignores: ['.next/', 'node_modules/'],
   },
@@ -48,4 +49,4 @@ export default [
       '@typescript-eslint/no-require-imports': 'off',
     },
   },
-]
+])

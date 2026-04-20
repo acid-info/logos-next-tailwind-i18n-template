@@ -1,4 +1,4 @@
-import 'css/tailwind.css'
+import '@/css/tailwind.css'
 
 import Header from '@/components/site-headaer'
 import Footer from '@/components/site-footer'

@@ -8,35 +8,36 @@
     "build": "next build",
     "serve": "next start",
     "analyze": "next build",
-    "lint": "eslint --fix app components lib",
+    "lint": "eslint --fix .",
+    "type-check": "next typegen && tsc --noEmit",
     "prepare": "husky"
   },
   "dependencies": {
-    "@next/bundle-analyzer": "^16.1.6",
-    "@tailwindcss/postcss": "^4.2.1",
+    "@next/bundle-analyzer": "^16.2.4",
+    "@tailwindcss/postcss": "^4.2.2",
     "clsx": "^2.1.1",
-    "esbuild": "0.27.4",
-    "next": "^16.1.6",
-    "next-intl": "^4.8.3",
-    "postcss": "^8.5.8",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "tailwindcss": "^4.2.1"
+    "esbuild": "0.28.0",
+    "next": "^16.2.4",
+    "next-intl": "^4.9.1",
+    "postcss": "^8.5.10",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@svgr/webpack": "^8.1.0",
-    "@types/node": "25.5.0",
+    "@types/node": "25.6.0",
     "@types/react": "^19.2.14",
-    "eslint": "^10.0.3",
+    "eslint": "^10.2.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "prettier": "^3.8.1",
+    "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.0"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.58.2"
   },
   "lint-staged": {
     "*.+(js|jsx|ts|tsx)": [
@@ -44,6 +45,14 @@
     ],
     "*.+(js|jsx|ts|tsx|json|css|md|mdx)": [
       "prettier --write"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@swc/core",
+      "esbuild",
+      "sharp"
     ]
   }
 }
