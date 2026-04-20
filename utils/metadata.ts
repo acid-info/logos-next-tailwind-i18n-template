@@ -58,7 +58,7 @@ export async function createDefaultMetadata({
       description,
       images: [absoluteUrl('/og')],
     },
-    icons: '/favicon.png',
+    icons: '/favicon.ico',
     creator: siteConfig.name,
     keywords: siteConfig.keywords,
     robots: {
