@@ -15,6 +15,12 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  const siteUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    'https://logos-next-tailwind-i18n-template-git-circles-api-test-acidinfo.vercel.app'
+  ).replace(/\/$/, '')
+  const pageUrl = `${siteUrl}/${locale}`
+  const oembedHref = `${siteUrl}/api/oembed?url=${encodeURIComponent(pageUrl)}&format=json`
 
   return (
     <NextIntlClientProvider>
@@ -25,6 +31,7 @@ export default async function RootLayout({
           <meta name="msapplication-TileColor" content="#000000" />
           <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
           <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
+          <link rel="alternate" type="application/json+oembed" href={oembedHref} />
           {/* <script
             dangerouslySetInnerHTML={{
               __html: themeInitScript,
