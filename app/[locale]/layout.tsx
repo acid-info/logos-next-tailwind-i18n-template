@@ -20,8 +20,8 @@ export default async function RootLayout({
     <NextIntlClientProvider>
       <html lang={locale} className={`scroll-smooth`} suppressHydrationWarning>
         <head>
-          <link rel="apple-touch-icon" sizes="76x76" href="/favicon.ico" />
-          <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+          <link rel="apple-touch-icon" sizes="76x76" href="/favicon.png" />
+          <link rel="icon" href="/favicon.png" type="image/png" />
           <meta name="msapplication-TileColor" content="#000000" />
           <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
           <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
