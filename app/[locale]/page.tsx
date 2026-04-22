@@ -94,14 +94,15 @@ export default async function Page() {
     events.reduce((locations, event) => {
       const city = event.location_city?.trim()
       const country = event.location_country?.trim()
-      const label =
-        !city && !country ? null : !city ? country : !country ? city : `${city}, ${country}`
+      if (!city) return locations
 
-      if (!label || locations.has(label)) return locations
-      locations.set(label, event.event_url?.trim() || null)
+      const label = country ? `${city}, ${country}` : city
+
+      if (locations.has(city)) return locations
+      locations.set(city, { label, href: event.event_url?.trim() || null })
       return locations
-    }, new Map<string, string | null>()),
-    ([label, href]) => ({ label, href })
+    }, new Map<string, { label: string; href: string | null }>()),
+    ([, location]) => location
   ).sort((a, b) => a.label.localeCompare(b.label))
 
   const distinctCountries = new Set(
