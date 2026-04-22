@@ -90,6 +90,20 @@ export default async function Page() {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
+  const activeLocations = Array.from(
+    events.reduce((locations, event) => {
+      const city = event.location_city?.trim()
+      const country = event.location_country?.trim()
+      const label =
+        !city && !country ? null : !city ? country : !country ? city : `${city}, ${country}`
+
+      if (!label || locations.has(label)) return locations
+      locations.set(label, event.event_url?.trim() || null)
+      return locations
+    }, new Map<string, string | null>()),
+    ([label, href]) => ({ label, href })
+  ).sort((a, b) => a.label.localeCompare(b.label))
+
   const distinctCountries = new Set(
     events.map((event) => event.location_country).filter((country) => country?.trim())
   ).size
@@ -125,66 +139,37 @@ export default async function Page() {
         </div>
       </section>
 
-      {/* Events Table */}
+      {/* Active Circles */}
       <section>
         <h2 className="mb-4 text-xl font-semibold text-black">
-          Circle Events{' '}
-          <span className="text-sm font-normal text-black">({events.length} total)</span>
+          Active Circles{' '}
+          <span className="text-sm font-normal text-black">
+            ({activeLocations.length} locations)
+          </span>
         </h2>
-        {events.length === 0 ? (
-          <p className="text-black">No events found.</p>
+        {activeLocations.length === 0 ? (
+          <p className="text-black">No active circles found.</p>
         ) : (
-          <div className="overflow-x-auto border border-black">
-            <table className="min-w-full divide-y divide-black text-sm">
-              <thead className="bg-white">
-                <tr>
-                  {['Event', 'City', 'Country', 'Date', 'Coords'].map((h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-black uppercase"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-black bg-white">
-                {events.map((ev) => (
-                  <tr key={ev.event_id} className="transition-colors hover:bg-gray-50">
-                    <td className="max-w-xs px-4 py-3 font-medium text-black">
-                      {ev.event_url ? (
-                        <a
-                          href={ev.event_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-black hover:underline"
-                        >
-                          {ev.event_name || '—'}
-                        </a>
-                      ) : (
-                        ev.event_name || '—'
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-black">{ev.location_city || '—'}</td>
-                    <td className="px-4 py-3 text-black">{ev.location_country || '—'}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-black">
-                      {ev.start_at
-                        ? new Date(ev.start_at).toLocaleDateString('en-GB', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })
-                        : '—'}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs whitespace-nowrap text-black">
-                      {ev.geo_latitude && ev.geo_longitude
-                        ? `${Number(ev.geo_latitude).toFixed(3)}, ${Number(ev.geo_longitude).toFixed(3)}`
-                        : '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="border border-black bg-white p-4">
+            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-4">
+              {activeLocations.map(({ label, href }) =>
+                href ? (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border border-black px-3 py-2 text-black transition-colors hover:bg-gray-50 hover:underline"
+                  >
+                    {label}
+                  </a>
+                ) : (
+                  <div key={label} className="border border-black px-3 py-2 text-black">
+                    {label}
+                  </div>
+                )
+              )}
+            </div>
           </div>
         )}
       </section>
